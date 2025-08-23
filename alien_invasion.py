@@ -1,5 +1,6 @@
 import sys
 from time import sleep
+from pathlib import Path
 
 import pygame
 
@@ -66,7 +67,7 @@ class AlienInvasion:
         """响应鼠标和键盘事件"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                self._quit()
             elif event.type == pygame.KEYDOWN:
                 self._check_keydown_events(event)
             elif event.type == pygame.KEYUP:
@@ -88,7 +89,7 @@ class AlienInvasion:
         elif event.key == pygame.K_LEFT:
             self.ship.moving_left = True
         elif event.key == pygame.K_q:
-            sys.exit()
+            self._quit()
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
         elif event.key == pygame.K_p:
@@ -102,6 +103,11 @@ class AlienInvasion:
         self.stats.reset_stats()
         self.game_active = True
         self.scoreboard.prep_score()
+        self.scoreboard.prep_level()
+        self.scoreboard.prep_ships()
+        path = Path('highscore.txt')
+        self.stats.high_score = int(path.read_text())
+        self.scoreboard.prep_high_score()
 
         # 清空外星人列表和子弹列表
         self.bullets.empty()
@@ -158,6 +164,10 @@ class AlienInvasion:
             self._create_fleet()
             self.settings.increase_speed()
 
+            # 提高等级
+            self.stats.level += 1
+            self.scoreboard.prep_level()
+
     def _update_aliens(self):
         """检查是否有外星人位于屏幕边缘并更新整个外星舰队的位置"""
         self._check_fleet_edges()
@@ -175,6 +185,7 @@ class AlienInvasion:
         if self.stats.ships_left > 0:
             # 将ships_left减1
             self.stats.ships_left -= 1
+            self.scoreboard.prep_ships()
             # 清空外星人列表和子弹列表
             self.bullets.empty()
             self.aliens.empty()
@@ -250,6 +261,11 @@ class AlienInvasion:
         for alien in self.aliens.sprites():
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
+
+    def _quit(self):
+        path = Path('highscore.txt')
+        path.write_text(str(self.stats.high_score))
+        sys.exit()
 
 
 if __name__ == '__main__':
