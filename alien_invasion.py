@@ -196,6 +196,9 @@ class AlienInvasion:
             sleep(0.5)
         else:
             self.game_active = False
+            self.scoreboard.check_high_score()
+            path = Path('highscore.txt')
+            path.write_text(str(self.stats.high_score))
             pygame.mouse.set_visible(True)
 
     def _check_aliens_bottom(self):
